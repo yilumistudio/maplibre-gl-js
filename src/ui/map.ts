@@ -25,6 +25,7 @@ import {RGBAImage} from '../util/image';
 import {Event, ErrorEvent, Listener} from '../util/evented';
 import {MapEventType, MapLayerEventType, MapMouseEvent, MapSourceDataEvent, MapStyleDataEvent} from './events';
 import {TaskQueue} from '../util/task_queue';
+import {throttle} from '../util/throttle';
 import {webpSupported} from '../util/webp_supported';
 import {PerformanceMarkers, PerformanceUtils} from '../util/performance';
 import {Source, SourceClass} from '../source/source';
@@ -33,9 +34,8 @@ import {StyleLayer} from '../style/style_layer';
 import type {RequestTransformFunction} from '../util/request_manager';
 import type {LngLatLike} from '../geo/lng_lat';
 import type {LngLatBoundsLike} from '../geo/lng_lat_bounds';
-import type {FeatureIdentifier, StyleOptions, StyleSetterOptions} from '../style/style';
+import type {AddLayerObject, FeatureIdentifier, StyleOptions, StyleSetterOptions} from '../style/style';
 import type {MapDataEvent} from './events';
-import type {CustomLayerInterface} from '../style/style_layer/custom_style_layer';
 import type {StyleImage, StyleImageInterface, StyleImageMetadata} from '../style/style_image';
 import type {PointLike} from './camera';
 import type {ScrollZoomHandler} from './handler/scroll_zoom';
@@ -51,7 +51,6 @@ import {defaultLocale} from './default_locale';
 import type {TaskID} from '../util/task_queue';
 import type {Cancelable} from '../types/cancelable';
 import type {
-    LayerSpecification,
     FilterSpecification,
     StyleSpecification,
     LightSpecification,
@@ -640,15 +639,17 @@ export class Map extends Camera {
         if (typeof window !== 'undefined') {
             addEventListener('online', this._onWindowOnline, false);
             let initialResizeEventCaptured = false;
+            const throttledResizeCallback = throttle((entries: ResizeObserverEntry[]) => {
+                if (this._trackResize && !this._removed) {
+                    this.resize(entries)._update();
+                }
+            }, 50);
             this._resizeObserver = new ResizeObserver((entries) => {
                 if (!initialResizeEventCaptured) {
                     initialResizeEventCaptured = true;
                     return;
                 }
-
-                if (this._trackResize) {
-                    this.resize(entries)._update();
-                }
+                throttledResizeCallback(entries);
             });
             this._resizeObserver.observe(this._container);
         }
@@ -1962,7 +1963,7 @@ export class Map extends Camera {
      * map.setTerrain({ source: 'terrain' });
      * ```
      */
-    setTerrain(options: TerrainSpecification): this {
+    setTerrain(options: TerrainSpecification | null): this {
         this.style._checkLoaded();
 
         // clear event handlers
@@ -2017,8 +2018,8 @@ export class Map extends Camera {
      * map.getTerrain(); // { source: 'terrain' };
      * ```
      */
-    getTerrain(): TerrainSpecification {
-        return this.terrain && this.terrain.options;
+    getTerrain(): TerrainSpecification | null {
+        return this.terrain?.options ?? null;
     }
 
     /**
@@ -2346,7 +2347,7 @@ export class Map extends Camera {
      *
      * @param layer - The layer to add,
      * conforming to either the MapLibre Style Specification's [layer definition](https://maplibre.org/maplibre-style-spec/layers) or,
-     * less commonly, the {@link CustomLayerInterface} specification.
+     * less commonly, the {@link CustomLayerInterface} specification. Can also be a layer definition with an embedded source definition.
      * The MapLibre Style Specification's layer definition is appropriate for most layers.
      *
      * @param beforeId - The ID of an existing layer to insert the new layer before,
@@ -2418,7 +2419,7 @@ export class Map extends Camera {
      * @see [Add a vector tile source](https://maplibre.org/maplibre-gl-js/docs/examples/vector-source/)
      * @see [Add a WMS source](https://maplibre.org/maplibre-gl-js/docs/examples/wms/)
      */
-    addLayer(layer: (LayerSpecification & {source?: string | SourceSpecification}) | CustomLayerInterface, beforeId?: string) {
+    addLayer(layer: AddLayerObject, beforeId?: string) {
         this._lazyInitEmptyStyle();
         this.style.addLayer(layer, beforeId);
         return this._update(true);
@@ -2475,7 +2476,7 @@ export class Map extends Camera {
      * @see [Filter symbols by toggling a list](https://maplibre.org/maplibre-gl-js/docs/examples/filter-markers/)
      * @see [Filter symbols by text input](https://maplibre.org/maplibre-gl-js/docs/examples/filter-markers-by-input/)
      */
-    getLayer(id: string): StyleLayer {
+    getLayer(id: string): StyleLayer | undefined {
         return this.style.getLayer(id);
     }
 

@@ -68,7 +68,7 @@ MapLibre GL JS v1 is completely backward compatible with Mapbox GL JS v1. This c
 
 #### CDN Links
 
-> MapLibre GL JS is distributed via [unpkg.com](https://unpkg.com). For more information, please see [MapLibre GL JS is on unpkg.com](./documents_and_diagrams/README-unpkg.md#maplibre-gl-on-unpkgcom).
+> MapLibre GL JS is distributed via [unpkg.com](https://unpkg.com). For more information, please see [MapLibre GL JS is on unpkg.com](./developer-guides/README-unpkg.md).
 
 ```diff
 -    <script src="https://api.mapbox.com/mapbox-gl-js/v#.#.#/mapbox-gl.js"></script>
@@ -140,6 +140,7 @@ Silver:
 
 <a href="https://www.jawg.io/"><img src="https://maplibre.org/img/jawgmaps-logo.svg" alt="Logo JawgMaps" width="25%"/></a>
 
+<a href="https://www.radar.com/"><img src="https://maplibre.org/img/radar-logo.svg" alt="Logo Radar" width="25%"/></a>
 
 Backers and Supporters:
 
