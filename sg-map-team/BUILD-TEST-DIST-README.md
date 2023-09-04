@@ -83,8 +83,19 @@ Or we can host locally built dev js by running `npm run start`
 More commands can be learned from [package.json](../package.json)  
 
 # Test
-Todo
+The consumer project should either **npm install @yilumi/maplibre-gl** or use  
+**local hosted js library**.
 
-# Dist
-While offical maplibre dist packages to cdn. We should have our own deploy script  
-to deploy to our target server or cdn.
+## Local hosted js library
+Run `npm start`, it will serve dist files locally at port 9966.  
+The consumer app can use this js library. Example of nextjs project using local  
+hosted maplibre-gl can be found in **react-three-map** project.
+
+## Use published npm package
+In consumer app, make sure **@yilumi/maplibre-gl** is a dependency in package.json.  
+Then run a `npm install`.  
+Remember to set correct **.npmrc** to use our private registry for @yilumi scoped  
+packages.
+
+# Publish
+This package will publish to our own private registry. 

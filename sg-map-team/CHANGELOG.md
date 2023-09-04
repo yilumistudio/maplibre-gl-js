@@ -1,0 +1,9 @@
+## 0.1.2
+
+
+## 0.1.1
+
+Based on maplibre-gl-js version 3.3.1, 998533e9d09b9c02dcfac440b8e85b3fc06269f5.  
+
+No change to maplibre-gl-js source. 
+
