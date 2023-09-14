@@ -1,5 +1,8 @@
+## 0.1.4
+
 ## 0.1.3
 
+https://github.com/maplibre/maplibre-gl-js/commit/9066d5f8a18ea2a009d330fbeecf188990afc0fd
 Painter now draws nothing except debug stuffs.
 
 ## 0.1.2
