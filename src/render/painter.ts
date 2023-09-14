@@ -473,38 +473,38 @@ export class Painter {
         if (layer.type !== 'background' && layer.type !== 'custom' && !(coords || []).length) return;
         this.id = layer.id;
 
-        switch (layer.type) {
-            case 'symbol':
-                drawSymbols(painter, sourceCache, layer as any, coords, this.style.placement.variableOffsets);
-                break;
-            case 'circle':
-                drawCircles(painter, sourceCache, layer as any, coords);
-                break;
-            case 'heatmap':
-                drawHeatmap(painter, sourceCache, layer as any, coords);
-                break;
-            case 'line':
-                drawLine(painter, sourceCache, layer as any, coords);
-                break;
-            case 'fill':
-                drawFill(painter, sourceCache, layer as any, coords);
-                break;
-            case 'fill-extrusion':
-                drawFillExtrusion(painter, sourceCache, layer as any, coords);
-                break;
-            case 'hillshade':
-                drawHillshade(painter, sourceCache, layer as any, coords);
-                break;
-            case 'raster':
-                drawRaster(painter, sourceCache, layer as any, coords);
-                break;
-            case 'background':
-                drawBackground(painter, sourceCache, layer as any, coords);
-                break;
-            case 'custom':
-                drawCustom(painter, sourceCache, layer as any);
-                break;
-        }
+        // switch (layer.type) {
+        //     case 'symbol':
+        //         drawSymbols(painter, sourceCache, layer as any, coords, this.style.placement.variableOffsets);
+        //         break;
+        //     case 'circle':
+        //         drawCircles(painter, sourceCache, layer as any, coords);
+        //         break;
+        //     case 'heatmap':
+        //         drawHeatmap(painter, sourceCache, layer as any, coords);
+        //         break;
+        //     case 'line':
+        //         drawLine(painter, sourceCache, layer as any, coords);
+        //         break;
+        //     case 'fill':
+        //         drawFill(painter, sourceCache, layer as any, coords);
+        //         break;
+        //     case 'fill-extrusion':
+        //         drawFillExtrusion(painter, sourceCache, layer as any, coords);
+        //         break;
+        //     case 'hillshade':
+        //         drawHillshade(painter, sourceCache, layer as any, coords);
+        //         break;
+        //     case 'raster':
+        //         drawRaster(painter, sourceCache, layer as any, coords);
+        //         break;
+        //     case 'background':
+        //         drawBackground(painter, sourceCache, layer as any, coords);
+        //         break;
+        //     case 'custom':
+        //         drawCustom(painter, sourceCache, layer as any);
+        //         break;
+        // }
     }
 
     /**
