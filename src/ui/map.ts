@@ -86,15 +86,10 @@ export type MapOptions = {
      * @defaultValue true
      */
     interactive?: boolean;
-
     /**
      * The HTML element in which MapLibre GL JS will render the map, or the element's string `id`. The specified element must have no children.
      */
     container: HTMLElement | string;
-    /**
-     * If canvas is given, ignore the previous container option, will just use this canvas to render the map. The specified element must have no children.
-     */
-    canvas?: HTMLCanvasElement | string;
     /**
      * The threshold, measured in degrees, that determines when the map's
      * bearing will snap to north. For example, with a `bearingSnap` of 7, if the user rotates
@@ -614,32 +609,15 @@ export class Map extends Camera {
 
         this._requestManager = new RequestManager(options.transformRequest);
 
-        if (options.canvas !== undefined) {
-            if (typeof options.canvas === 'string') {
-                this._canvas = document.getElementById(options.canvas) as HTMLCanvasElement;
-                if (!this._canvas) {
-                    throw new Error(`Canvas '${options.canvas}' not found.`);
-                }
-            } else if (options.canvas instanceof HTMLCanvasElement) {
-                this._canvas = options.canvas;
-            } else {
-                throw new Error('Invalid type: \'canvas\' must be a String or HTMLCanvasElement.');
+        if (typeof options.container === 'string') {
+            this._container = document.getElementById(options.container);
+            if (!this._container) {
+                throw new Error(`Container '${options.container}' not found.`);
             }
-
-            if (this._canvas.children.length > 0) {
-                throw new Error('Map canvas must be empty');
-            }
+        } else if (options.container instanceof HTMLElement) {
+            this._container = options.container;
         } else {
-            if (typeof options.container === 'string') {
-                this._container = document.getElementById(options.container);
-                if (!this._container) {
-                    throw new Error(`Container '${options.container}' not found.`);
-                }
-            } else if (options.container instanceof HTMLElement) {
-                this._container = options.container;
-            } else {
-                throw new Error('Invalid type: \'container\' must be a String or HTMLElement.');
-            }
+            throw new Error('Invalid type: \'container\' must be a String or HTMLElement.');
         }
 
         if (options.maxBounds) {
@@ -2932,39 +2910,16 @@ export class Map extends Camera {
         return [width, height];
     }
 
-    // set up the container
     _setupContainer() {
-        if (this._canvas) {
-            // Map option gives a canvas, add two div parents to given canvas.
-            const originalParent = this._canvas.parentElement;
+        const container = this._container;
+        container.classList.add('maplibregl-map');
 
-            if (!originalParent) {
-                throw new Error('Canvas element has no parent');
-            }
-
-            const container = this._container = DOM.create('div', 'maplibregl-map', originalParent);
-            const canvasContainer = this._canvasContainer = DOM.create('div', 'maplibregl-canvas-container', container);
-            if (this._interactive) {
-                canvasContainer.classList.add('maplibregl-interactive');
-            }
-
-            canvasContainer.appendChild(this._canvas);
-            this._canvas.classList.add('maplibregl-canvas');
-        } else if (this._container) {
-            // Map option gives a root container, create a canvas inside it.
-            const container = this._container;
-            container.classList.add('maplibregl-map');
-
-            const canvasContainer = this._canvasContainer = DOM.create('div', 'maplibregl-canvas-container', container);
-            if (this._interactive) {
-                canvasContainer.classList.add('maplibregl-interactive');
-            }
-
-            this._canvas = DOM.create('canvas', 'maplibregl-canvas', canvasContainer);
-        } else {
-            throw new Error('Must specify either options.container or options.canvas');
+        const canvasContainer = this._canvasContainer = DOM.create('div', 'maplibregl-canvas-container', container);
+        if (this._interactive) {
+            canvasContainer.classList.add('maplibregl-interactive');
         }
 
+        this._canvas = DOM.create('canvas', 'maplibregl-canvas', canvasContainer);
         this._canvas.addEventListener('webglcontextlost', this._contextLost, false);
         this._canvas.addEventListener('webglcontextrestored', this._contextRestored, false);
         this._canvas.setAttribute('tabindex', '0');
@@ -2975,7 +2930,7 @@ export class Map extends Camera {
         const clampedPixelRatio = this._getClampedPixelRatio(dimensions[0], dimensions[1]);
         this._resizeCanvas(dimensions[0], dimensions[1], clampedPixelRatio);
 
-        const controlContainer = this._controlContainer = DOM.create('div', 'maplibregl-control-container', this._container);
+        const controlContainer = this._controlContainer = DOM.create('div', 'maplibregl-control-container', container);
         const positions = this._controlPositions = {};
         ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach((positionName) => {
             positions[positionName] = DOM.create('div', `maplibregl-ctrl-${positionName} `, controlContainer);
