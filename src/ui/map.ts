@@ -55,8 +55,10 @@ import type {
     StyleSpecification,
     LightSpecification,
     SourceSpecification,
-    TerrainSpecification
+    TerrainSpecification,
+    LayerSpecification
 } from '@maplibre/maplibre-gl-style-spec';
+import type {CustomLayerInterface} from '../style/style_layer/custom_style_layer';
 
 import {Callback} from '../types/callback';
 import type {ControlPosition, IControl} from './control/control';
@@ -415,6 +417,8 @@ const defaultOptions = {
     maxCanvasSize: [4096, 4096]
 } as CompleteMapOptions;
 
+type LayerTypes = LayerSpecification['type'] | CustomLayerInterface['type'];
+
 /**
  * The `Map` object represents the map on your page. It exposes methods
  * and properties that enable you to programmatically change the map,
@@ -463,6 +467,7 @@ export class Map extends Camera {
     _showCollisionBoxes: boolean;
     _showPadding: boolean;
     _showOverdrawInspector: boolean;
+    _paintLayerTypes: LayerTypes[];
     _repaint: boolean;
     _vertices: boolean;
     _canvas: HTMLCanvasElement;
@@ -608,6 +613,8 @@ export class Map extends Camera {
         this._imageQueueHandle = ImageRequest.addThrottleControl(() => this.isMoving());
 
         this._requestManager = new RequestManager(options.transformRequest);
+
+        this._paintLayerTypes = ['background', 'circle', 'line', 'fill', 'symbol', 'raster', 'hillshade', 'heatmap', 'fill-extrusion', 'custom'];
 
         if (typeof options.container === 'string') {
             this._container = document.getElementById(options.container);
@@ -3417,4 +3424,28 @@ export class Map extends Camera {
     getCameraTargetElevation(): number {
         return this.transform.elevation;
     }
+
+    /**
+     * Gets and sets a string array indicating whether the map will render the given
+     * layers.
+     *
+     * @example
+     * ```ts
+     * map.paintLayerTypes = 'all';
+     * map.paintLayerTypes = 'none';
+     * map.paintLayerTypes = ['background', 'custom'];
+     * ```
+     */
+    get paintLayerTypes(): LayerTypes[] { return this._paintLayerTypes; }
+    set paintLayerTypes(value: LayerTypes[] | 'all' | 'none') {
+        if (value === 'all') {
+            value = ['background', 'fill', 'line', 'symbol', 'raster', 'circle', 'fill-extrusion', 'hillshade'];
+        } else if (value === 'none') {
+            value = [];
+        }
+        if (this._paintLayerTypes === value) return;
+        this._paintLayerTypes = value;
+        this._update(true);
+    }
+
 }

@@ -1,4 +1,11 @@
+## 0.1.5
+
+Add options to draw type selectively.
+
 ## 0.1.4
+
+https://github.com/maplibre/maplibre-gl-js/commit/2a6f87d24db6471b7831fcab18a4ad1e1e19a845
+Painter now draw custom.
 
 ## 0.1.3
 

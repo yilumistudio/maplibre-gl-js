@@ -1,7 +1,7 @@
 {
   "name": "@yilumi/maplibre-gl",
   "description": "A modified version of maplibre-gl-js",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "main": "dist/maplibre-gl.js",
   "style": "dist/maplibre-gl.css",
   "repository": {
@@ -149,6 +149,7 @@
     "build-dev": "rollup --configPlugin @rollup/plugin-typescript -c --environment BUILD:dev",
     "watch-dev": "rollup --configPlugin @rollup/plugin-typescript -c --environment BUILD:dev --watch",
     "build-prod": "rollup --configPlugin @rollup/plugin-typescript -c --environment BUILD:production",
+    "watch-prod": "rollup --configPlugin @rollup/plugin-typescript -c --environment BUILD:production --watch",
     "build-csp": "rollup --configPlugin @rollup/plugin-typescript -c rollup.config.csp.ts",
     "build-csp-dev": "rollup --configPlugin @rollup/plugin-typescript -c rollup.config.csp.ts --environment BUILD:dev",
     "build-css": "postcss -o dist/maplibre-gl.css src/css/maplibre-gl.css",
