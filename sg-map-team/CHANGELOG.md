@@ -1,5 +1,6 @@
 ## 0.1.6
 
+https://github.com/maplibre/maplibre-gl-js/commit/6ee9b1a8c118ebb70bea11eb6c5bad5049e35ef7
 Add options to draw type selectively.
 
 ## 0.1.4
