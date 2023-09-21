@@ -1,3 +1,8 @@
+## 0.1.7
+
+expose Map.getRenderableTiles().  
+TODO: Note that source cache is hard coded to "osm-singapore".
+
 ## 0.1.6
 
 https://github.com/maplibre/maplibre-gl-js/commit/6ee9b1a8c118ebb70bea11eb6c5bad5049e35ef7

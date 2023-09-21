@@ -67,6 +67,7 @@ import {Terrain} from '../render/terrain';
 import {RenderToTexture} from '../render/render_to_texture';
 import {config} from '../util/config';
 import type {QueryRenderedFeaturesOptions, QuerySourceFeatureOptions} from '../source/query_features';
+import {Tile} from '../source/tile';
 
 const version = packageJSON.version;
 
@@ -3448,4 +3449,12 @@ export class Map extends Camera {
         this._update(true);
     }
 
+    getRenderableTiles(symbolLayer: boolean): Tile[] | null {
+        if (this.style && this.style.sourceCaches) {
+            const sourceCache = this.style.sourceCaches['osm-singapore'];
+            const renderableTiles = sourceCache.getRenderableTiles(symbolLayer);
+            return renderableTiles.length > 0 ? renderableTiles : null;
+        }
+        return null;
+    }
 }

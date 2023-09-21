@@ -228,6 +228,15 @@ export class SourceCache extends Evented {
         return renderables.map(tile => tile.tileID).sort(compareTileId).map(id => id.key);
     }
 
+    getRenderableTiles(symbolLayer?: boolean): Array<Tile> {
+        const readableIds = this.getRenderableIds(symbolLayer);
+        const readableTiles: Array<Tile> = [];
+        for (const id of readableIds) {
+            readableTiles.push(this._tiles[id]);
+        }
+        return readableTiles;
+    }
+
     hasRenderableParent(tileID: OverscaledTileID) {
         const parentTile = this.findLoadedParent(tileID, 0);
         if (parentTile) {
