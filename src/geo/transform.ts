@@ -24,22 +24,50 @@ export class Transform {
     lngRange: [number, number];
     latRange: [number, number];
     maxValidLatitude: number;
+
+    // 2^zoom (worldSize = tileSize * scale)
     scale: number;
+
+    // Map viewport size (not including the pixel ratio)
     width: number;
     height: number;
+
+    // Bearing, radians, in [-pi, pi]
     angle: number;
+
+    // 2D rotation matrix in the horizontal plane, as a function of bearing
     rotationMatrix: mat2;
+
+    // The scale factor component of the conversion from pixels ([0, w] x [h, 0]) to GL
+    // NDC ([1, -1] x [1, -1]) (note flipped y)
     pixelsToGLUnits: [number, number];
+
+    // Distance from camera to the center, in screen pixel units, independent of zoom
     cameraToCenterDistance: number;
+
+    // Projection from mercator coordinates ([0, 0] nw, [1, 1] se) to GL clip coordinates
     mercatorMatrix: mat4;
+
+    // Projection from world coordinates (mercator scaled by worldSize) to clip coordinates
     projMatrix: mat4;
     invProjMatrix: mat4;
+
+    // Same as projMatrix, pixel-aligned to avoid fractional pixels for raster tiles
     alignedProjMatrix: mat4;
+
+    // From world coordinates to screen pixel coordinates (projMatrix premultiplied by labelPlaneMatrix)
     pixelMatrix: mat4;
     pixelMatrix3D: mat4;
     pixelMatrixInverse: mat4;
+
+    // Transform from screen coordinates to GL NDC, [0, w] x [h, 0] --> [-1, 1] x [-1, 1]
+    // Roughly speaking, applies pixelsToGLUnits scaling with a translation
     glCoordMatrix: mat4;
+
+    // Inverse of glCoordMatrix, from NDC to screen coordinates, [-1, 1] x [-1, 1] --> [0, w] x [h, 0]
     labelPlaneMatrix: mat4;
+
+    // Vertical Fov, radians
     _fov: number;
     _pitch: number;
     _zoom: number;
@@ -458,6 +486,7 @@ export class Transform {
     zoomScale(zoom: number) { return Math.pow(2, zoom); }
     scaleZoom(scale: number) { return Math.log(scale) / Math.LN2; }
 
+    // Transform from LngLat to Point in world coordinates [-180, 180] x [90, -90] --> [0, this.worldSize] x [0, this.worldSize]
     project(lnglat: LngLat) {
         const lat = clamp(lnglat.lat, -this.maxValidLatitude, this.maxValidLatitude);
         return new Point(
@@ -465,10 +494,12 @@ export class Transform {
             mercatorYfromLat(lat) * this.worldSize);
     }
 
+    // Transform from Point in world coordinates to LngLat [0, this.worldSize] x [0, this.worldSize] --> [-180, 180] x [90, -90]
     unproject(point: Point): LngLat {
         return new MercatorCoordinate(point.x / this.worldSize, point.y / this.worldSize).toLngLat();
     }
 
+    // Point at center in world coordinates.
     get point(): Point { return this.project(this.center); }
 
     /**
