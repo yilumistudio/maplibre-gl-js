@@ -1,3 +1,7 @@
+## 0.1.8
+
+Allow Transform to cull fogged tiles.
+
 ## 0.1.7
 
 https://github.com/maplibre/maplibre-gl-js/commit/6ad3f18031815b29c4e6c1128abfee491e87be6a

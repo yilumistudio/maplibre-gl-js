@@ -8,6 +8,7 @@ import {EXTENT} from '../data/extent';
 import {vec3, vec4, mat4, mat2, vec2} from 'gl-matrix';
 import {Aabb, Frustum} from '../util/primitives';
 import {EdgeInsets} from './edge_insets';
+import {polygonIntersectsPolygon} from '../util/intersection_tests';
 
 import {UnwrappedTileID, OverscaledTileID, CanonicalTileID} from '../source/tile_id';
 import type {PaddingOptions} from './edge_insets';
@@ -67,6 +68,14 @@ export class Transform {
     // Inverse of glCoordMatrix, from NDC to screen coordinates, [-1, 1] x [-1, 1] --> [0, w] x [h, 0]
     labelPlaneMatrix: mat4;
 
+    // Fog culling is referencing screen space. This value is the ratio of vertical
+    // distance from center point to top center.
+    // fogCullingVerticalOffset's range: [-0.5, 0.5]. 0 means no offset. 0.25 means
+    // fog appears half of top half screen.
+    fogCullingVerticalOffset?: number;
+    // The minimum pitch at which fog culling is enabled.
+    fogStartMinPitch?: number;
+
     // Vertical Fov, radians
     _fov: number;
     _pitch: number;
@@ -86,9 +95,12 @@ export class Transform {
     _alignedPosMatrixCache: {[_: string]: mat4};
     _minEleveationForCurrentTile: number;
 
-    constructor(minZoom?: number, maxZoom?: number, minPitch?: number, maxPitch?: number, renderWorldCopies?: boolean) {
+    constructor(minZoom?: number, maxZoom?: number, minPitch?: number, maxPitch?: number,
+        renderWorldCopies?: boolean, fogCullingVerticalOffset?: number, fogStartMinPitch?: number) {
         this.tileSize = 512; // constant
         this.maxValidLatitude = 85.051129; // constant
+        this.fogCullingVerticalOffset = fogCullingVerticalOffset ? Math.max(-0.5, Math.min(fogCullingVerticalOffset, 0.5)) : null;
+        this.fogStartMinPitch = fogStartMinPitch;
 
         this._renderWorldCopies = renderWorldCopies === undefined ? true : !!renderWorldCopies;
         this._minZoom = minZoom || 0;
@@ -115,7 +127,9 @@ export class Transform {
     }
 
     clone(): Transform {
-        const clone = new Transform(this._minZoom, this._maxZoom, this._minPitch, this.maxPitch, this._renderWorldCopies);
+        const clone = new Transform(this._minZoom, this._maxZoom, this._minPitch,
+            this.maxPitch, this._renderWorldCopies,
+            this.fogCullingVerticalOffset, this.fogStartMinPitch);
         clone.apply(this);
         return clone;
     }
@@ -134,6 +148,8 @@ export class Transform {
         this._pitch = that._pitch;
         this._unmodified = that._unmodified;
         this._edgeInsets = that._edgeInsets.clone();
+        this.fogCullingVerticalOffset = that.fogCullingVerticalOffset;
+        this.fogStartMinPitch = that.fogStartMinPitch;
         this._calcMatrices();
     }
 
@@ -396,7 +412,7 @@ export class Transform {
 
         // Do a depth-first traversal to find visible tiles and proper levels of detail
         const stack = [];
-        const result = [];
+        let result = [];
         const maxZoom = z;
         const overscaledZ = options.reparseOverscaled ? actualZ : z;
 
@@ -467,6 +483,37 @@ export class Transform {
                 }
                 stack.push({aabb: quadrant, zoom: childZ, x: childX, y: childY, wrap: it.wrap, fullyVisible});
             }
+        }
+
+        if (this.fogCullingVerticalOffset && this.fogStartMinPitch && this.pitch >= this.fogStartMinPitch) {
+            const fogCullingPointY = this.height * (0.5 - this.fogCullingVerticalOffset);
+            const utl = this.pointCoordinate(new Point(0, fogCullingPointY));
+            const utr = this.pointCoordinate(new Point(this.width, fogCullingPointY));
+            const ubl = this.pointCoordinate(new Point(this.width, this.height));
+            const ubr = this.pointCoordinate(new Point(0, this.height));
+            const allowedCoords = [new Point(utl.x, utl.y),
+                new Point(utr.x, utr.y),
+                new Point(ubl.x, ubl.y),
+                new Point(ubr.x, ubr.y)];
+
+            result = result.filter(entry => {
+                const tileX = entry.tileID.canonical.x;
+                const tileY = entry.tileID.canonical.y;
+                const numTilesAtZ = Math.pow(2, entry.tileID.canonical.z);
+                const tileCoordTL = new MercatorCoordinate(tileX / numTilesAtZ, tileY / numTilesAtZ);
+                const tileCoordTR = new MercatorCoordinate((tileX + 1) / numTilesAtZ, tileY / numTilesAtZ);
+                const tileCoordBL = new MercatorCoordinate(tileX / numTilesAtZ, (tileY + 1) / numTilesAtZ);
+                const tileCoordBR = new MercatorCoordinate((tileX + 1) / numTilesAtZ, (tileY + 1) / numTilesAtZ);
+                const thisTileCoords = [new Point(tileCoordTL.x, tileCoordTL.y),
+                    new Point(tileCoordTR.x, tileCoordTR.y),
+                    new Point(tileCoordBL.x, tileCoordBL.y),
+                    new Point(tileCoordBR.x, tileCoordBR.y)];
+
+                if (!polygonIntersectsPolygon(allowedCoords, thisTileCoords)) {
+                    return false;
+                }
+                return true;
+            });
         }
 
         return result.sort((a, b) => a.distanceSq - b.distanceSq).map(a => a.tileID);

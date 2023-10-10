@@ -329,6 +329,17 @@ export type MapOptions = {
      * You shouldn't set this above WebGl `MAX_TEXTURE_SIZE`. Defaults to [4096, 4096].
      */
     maxCanvasSize?: [number, number];
+    /**
+     * Fog culling is referencing screen space. This value is the ratio of vertical
+     * distance from center point to top center.
+     * fogCullingVerticalOffset's range: [-0.5, 0.5]. 0 means no offset. 0.25 means
+     * fog appears half of top half screen.
+     */
+    fogCullingVerticalOffset?: number;
+    /*
+     * The minimum pitch at which fog culling is enabled.
+     */
+    fogStartMinPitch?: number;
 };
 
 /**
@@ -506,6 +517,8 @@ export class Map extends Camera {
     _clickTolerance: number;
     _overridePixelRatio: number | null;
     _maxCanvasSize: [number, number];
+    _fogCullingVerticalOffset: number | null;
+    _fogStartMinPitch: number | null;
     _terrainDataCallback: (e: MapStyleDataEvent | MapSourceDataEvent) => void;
 
     /**
@@ -584,7 +597,9 @@ export class Map extends Camera {
             throw new Error(`maxPitch must be less than or equal to ${maxPitchThreshold}`);
         }
 
-        const transform = new Transform(options.minZoom, options.maxZoom, options.minPitch, options.maxPitch, options.renderWorldCopies);
+        const transform = new Transform(options.minZoom, options.maxZoom,
+            options.minPitch, options.maxPitch, options.renderWorldCopies,
+            options.fogCullingVerticalOffset, options.fogStartMinPitch);
         super(transform, {bearingSnap: options.bearingSnap});
 
         this._interactive = options.interactive;
@@ -609,6 +624,8 @@ export class Map extends Camera {
         this._clickTolerance = options.clickTolerance;
         this._overridePixelRatio = options.pixelRatio;
         this._maxCanvasSize = options.maxCanvasSize;
+        this._fogCullingVerticalOffset = options.fogCullingVerticalOffset;
+        this._fogStartMinPitch = options.fogStartMinPitch;
         this.transformCameraUpdate = options.transformCameraUpdate;
 
         this._imageQueueHandle = ImageRequest.addThrottleControl(() => this.isMoving());
