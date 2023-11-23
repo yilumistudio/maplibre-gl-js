@@ -5,58 +5,10 @@ This document gives us instructions on Linux, Mac and Windows.
 In practice, we use **WSL ubuntu on Windows** to build.
 
 ### WSL ubuntu on Windows
+Follow [WSL-UBUNTU-SETUP.md](./WSL-UBUNTU-SETUP.md) to setup WSL on Windows.  
 
 #### Install windows version docker
-
 docker required for running tests (no need if you don't run tests).
-
-#### Install WSL and ubuntu
-
-1. On Windows, install WSL. https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-11-with-gui-support#1-overview
-2. Install wsl and ubuntu.
-3. `wsl -l` will list all distros
-4. Use `wsl --setdefault ubuntu` to set default distro to ubuntu.
-5. Don't install vs code linux version. We should use Windows version to remote  
-   connect ubuntu wsl.
-6. Launch new ubuntu terminal: in windows start menu, type "ubuntu".
-7. Some setups is recommended for new ubuntu. Refer to https://github.com/yilumistudio/openmaptiles/blob/buildsgmap/BUILD-SG-MAP.md
-
-#### Notes
-
-1. don't install linux version docker
-2. don't install linux version vs code.
-
-#### Install gh command line tool
-
-```
-sudo apt update
-sudo apt install gh
-```
-
-`gh auth login` will ask for login credential, use token way.
-
-#### Sync repo
-
-```cd ~;
-mkdir github;
-cd github;
-gh repo clone yilumistudio/maplibre-gl-js
-cd maplibre-gl-js
-# switch or create dev branch if necessary
-```
-
-#### WSL ubuntu, repo setups
-
-Just follow [CONTRIBUTING.md](../CONTRIBUTING.md), **Linux** portion, NOT  
-Windows portion.
-
-#### Use VS code to connect WSL ubuntu
-
-Refer to https://github.com/yilumistudio/openmaptiles/blob/buildsgmap/BUILD-SG-MAP.md  
-**Use vs code in wsl ubuntu** section.
-
-Note that when we use VS code to open this repo, a prompt will show to suggest  
-using existing dev container. **Don't use** it. This is only for codespace.
 
 ## Build
 
