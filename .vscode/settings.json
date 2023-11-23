@@ -16,4 +16,5 @@
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
   "jest.jestCommandLine": "jest",
+  "editor.formatOnSave": true
 }

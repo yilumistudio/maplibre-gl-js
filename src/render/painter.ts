@@ -473,6 +473,8 @@ export class Painter {
         if (layer.type !== 'background' && layer.type !== 'custom' && !(coords || []).length) return;
         this.id = layer.id;
 
+        const allowedLayerTypes = this.style.map.paintLayerTypes;
+        if (allowedLayerTypes && !allowedLayerTypes.includes(layer.type)) return;
         switch (layer.type) {
             case 'symbol':
                 drawSymbols(painter, sourceCache, layer as any, coords, this.style.placement.variableOffsets);

@@ -55,8 +55,10 @@ import type {
     StyleSpecification,
     LightSpecification,
     SourceSpecification,
-    TerrainSpecification
+    TerrainSpecification,
+    LayerSpecification
 } from '@maplibre/maplibre-gl-style-spec';
+import type {CustomLayerInterface} from '../style/style_layer/custom_style_layer';
 
 import {Callback} from '../types/callback';
 import type {ControlPosition, IControl} from './control/control';
@@ -65,6 +67,7 @@ import {Terrain} from '../render/terrain';
 import {RenderToTexture} from '../render/render_to_texture';
 import {config} from '../util/config';
 import type {QueryRenderedFeaturesOptions, QuerySourceFeatureOptions} from '../source/query_features';
+import {Tile} from '../source/tile';
 
 const version = packageJSON.version;
 
@@ -326,6 +329,17 @@ export type MapOptions = {
      * You shouldn't set this above WebGl `MAX_TEXTURE_SIZE`. Defaults to [4096, 4096].
      */
     maxCanvasSize?: [number, number];
+    /**
+     * Fog culling is referencing screen space. This value is the ratio of vertical
+     * distance from center point to top center.
+     * fogCullingVerticalOffset's range: [-0.5, 0.5]. 0 means no offset. 0.25 means
+     * fog appears half of top half screen.
+     */
+    fogCullingVerticalOffset?: number;
+    /*
+     * The minimum pitch at which fog culling is enabled.
+     */
+    fogStartMinPitch?: number;
 };
 
 /**
@@ -415,6 +429,8 @@ const defaultOptions = {
     maxCanvasSize: [4096, 4096]
 } as CompleteMapOptions;
 
+type LayerTypes = LayerSpecification['type'] | CustomLayerInterface['type'];
+
 /**
  * The `Map` object represents the map on your page. It exposes methods
  * and properties that enable you to programmatically change the map,
@@ -463,6 +479,7 @@ export class Map extends Camera {
     _showCollisionBoxes: boolean;
     _showPadding: boolean;
     _showOverdrawInspector: boolean;
+    _paintLayerTypes: LayerTypes[];
     _repaint: boolean;
     _vertices: boolean;
     _canvas: HTMLCanvasElement;
@@ -500,6 +517,8 @@ export class Map extends Camera {
     _clickTolerance: number;
     _overridePixelRatio: number | null;
     _maxCanvasSize: [number, number];
+    _fogCullingVerticalOffset: number | null;
+    _fogStartMinPitch: number | null;
     _terrainDataCallback: (e: MapStyleDataEvent | MapSourceDataEvent) => void;
 
     /**
@@ -578,7 +597,9 @@ export class Map extends Camera {
             throw new Error(`maxPitch must be less than or equal to ${maxPitchThreshold}`);
         }
 
-        const transform = new Transform(options.minZoom, options.maxZoom, options.minPitch, options.maxPitch, options.renderWorldCopies);
+        const transform = new Transform(options.minZoom, options.maxZoom,
+            options.minPitch, options.maxPitch, options.renderWorldCopies,
+            options.fogCullingVerticalOffset, options.fogStartMinPitch);
         super(transform, {bearingSnap: options.bearingSnap});
 
         this._interactive = options.interactive;
@@ -603,11 +624,15 @@ export class Map extends Camera {
         this._clickTolerance = options.clickTolerance;
         this._overridePixelRatio = options.pixelRatio;
         this._maxCanvasSize = options.maxCanvasSize;
+        this._fogCullingVerticalOffset = options.fogCullingVerticalOffset;
+        this._fogStartMinPitch = options.fogStartMinPitch;
         this.transformCameraUpdate = options.transformCameraUpdate;
 
         this._imageQueueHandle = ImageRequest.addThrottleControl(() => this.isMoving());
 
         this._requestManager = new RequestManager(options.transformRequest);
+
+        this._paintLayerTypes = ['background', 'circle', 'line', 'fill', 'symbol', 'raster', 'hillshade', 'heatmap', 'fill-extrusion', 'custom'];
 
         if (typeof options.container === 'string') {
             this._container = document.getElementById(options.container);
@@ -3416,5 +3441,37 @@ export class Map extends Camera {
      */
     getCameraTargetElevation(): number {
         return this.transform.elevation;
+    }
+
+    /**
+     * Gets and sets a string array indicating whether the map will render the given
+     * layers.
+     *
+     * @example
+     * ```ts
+     * map.paintLayerTypes = 'all';
+     * map.paintLayerTypes = 'none';
+     * map.paintLayerTypes = ['background', 'custom'];
+     * ```
+     */
+    get paintLayerTypes(): LayerTypes[] { return this._paintLayerTypes; }
+    set paintLayerTypes(value: LayerTypes[] | 'all' | 'none') {
+        if (value === 'all') {
+            value = ['background', 'fill', 'line', 'symbol', 'raster', 'circle', 'fill-extrusion', 'hillshade'];
+        } else if (value === 'none') {
+            value = [];
+        }
+        if (this._paintLayerTypes === value) return;
+        this._paintLayerTypes = value;
+        this._update(true);
+    }
+
+    getRenderableTiles(symbolLayer: boolean): Tile[] | null {
+        if (this.style && this.style.sourceCaches) {
+            const sourceCache = this.style.sourceCaches['osm-singapore'];
+            const renderableTiles = sourceCache.getRenderableTiles(symbolLayer);
+            return renderableTiles.length > 0 ? renderableTiles : null;
+        }
+        return null;
     }
 }
