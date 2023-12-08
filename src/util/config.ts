@@ -12,6 +12,7 @@ type Config = {
     MAX_TILE_CACHE_ZOOM_LEVELS: number;
     REGISTERED_PROTOCOLS: {[x: string]: (requestParameters: RequestParameters, callback: ResponseCallback<any>) => Cancelable};
     WORKER_URL: string;
+    DRACO_URL: string;
 };
 
 export const config: Config = {
@@ -19,5 +20,6 @@ export const config: Config = {
     MAX_PARALLEL_IMAGE_REQUESTS_PER_FRAME: 8,
     MAX_TILE_CACHE_ZOOM_LEVELS: 5,
     REGISTERED_PROTOCOLS: {},
-    WORKER_URL: ''
+    WORKER_URL: '',
+    DRACO_URL: 'https://api.mapbox.com/mapbox-gl-js/draco_decoder_gltf_v1.5.6.wasm'
 };

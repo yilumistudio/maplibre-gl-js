@@ -23,6 +23,7 @@ import type {SourceSpecification} from '@maplibre/maplibre-gl-style-spec';
 import type {MapSourceDataEvent} from '../ui/events';
 import {Terrain} from '../render/terrain';
 import {config} from '../util/config';
+import type {Tiled3DModelSourceSpecification} from './tiled_3d_model_source';
 
 /**
  * @internal
@@ -70,7 +71,7 @@ export class SourceCache extends Evented {
     static maxUnderzooming: number;
     static maxOverzooming: number;
 
-    constructor(id: string, options: SourceSpecification, dispatcher: Dispatcher) {
+    constructor(id: string, options: SourceSpecification | Tiled3DModelSourceSpecification, dispatcher: Dispatcher) {
         super();
         this.id = id;
         this.dispatcher = dispatcher;

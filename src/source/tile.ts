@@ -59,6 +59,7 @@ export class Tile {
     buckets: {[_: string]: Bucket};
     latestFeatureIndex: FeatureIndex;
     latestRawTileData: ArrayBuffer;
+    latestRawTile3dModelData: ArrayBuffer;
     imageAtlas: ImageAtlas;
     imageAtlasTexture: Texture;
     glyphAtlasImage: AlphaImage;
@@ -245,6 +246,17 @@ export class Tile {
 
         this.latestFeatureIndex = null;
         this.state = 'unloaded';
+    }
+
+    load3dModelData(data: WorkerTileResult) {
+        // empty
+        if (!data) {
+            return;
+        }
+
+        if (data.rawTileData) {
+            this.latestRawTile3dModelData = data.rawTileData;
+        }
     }
 
     getBucket(layer: StyleLayer) {

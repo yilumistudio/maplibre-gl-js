@@ -60,6 +60,7 @@ import type {
 import type {CustomLayerInterface} from './style_layer/custom_style_layer';
 import type {Validator} from './validate_style';
 import type {OverscaledTileID} from '../source/tile_id';
+import type {Tiled3DModelSourceSpecification} from '../source/tiled_3d_model_source';
 
 const supportedDiffOperations = pick(diffOperations, [
     'addLayer',
@@ -191,11 +192,26 @@ export type StyleSwapOptions = {
     transformStyle?: TransformStyleFunction;
 }
 
+export type ModelLayerSpecification = {
+    'id': string;
+    'type': 'model';
+    'source': string;
+    'source-layer'?: string;
+    'slot'?: string;
+    'minzoom'?: number;
+    'maxzoom'?: number;
+    'filter'?: FilterSpecification;
+    'layout'?: {
+        'visibility'?: 'visible' | 'none';
+    };
+}
+
 /**
  * Specifies a layer to be added to a {@link Style}. In addition to a standard {@link LayerSpecification}
  * or a {@link CustomLayerInterface}, a {@link LayerSpecification} with an embedded {@link SourceSpecification} can also be provided.
  */
-export type AddLayerObject = LayerSpecification | (Omit<LayerSpecification, 'source'> & {source: SourceSpecification}) | CustomLayerInterface;
+export type AddLayerObject = LayerSpecification | (Omit<LayerSpecification, 'source'> & {source: SourceSpecification})
+| CustomLayerInterface | ModelLayerSpecification;
 
 /**
  * The Style base class
@@ -533,7 +549,7 @@ export class Style extends Evented {
         const allLayerIds: string [] = Object.keys(this._layers);
         for (const layerId of allLayerIds) {
             const layer = this._layers[layerId];
-            if (layer.type !== 'custom') {
+            if (layer.type !== 'custom' && layer.type !== 'model') {
                 serializedLayers[layerId] = layer.serialize();
             }
         }
@@ -766,7 +782,7 @@ export class Style extends Evented {
         return this.imageManager.listImages();
     }
 
-    addSource(id: string, source: SourceSpecification, options: StyleSetterOptions = {}) {
+    addSource(id: string, source: SourceSpecification | Tiled3DModelSourceSpecification, options: StyleSetterOptions = {}) {
         this._checkLoaded();
 
         if (this.sourceCaches[id] !== undefined) {
@@ -882,7 +898,7 @@ export class Style extends Evented {
             if (this._validate(validateStyle.layer,
                 `layers.${id}`, layerObject, {arrayIndex: -1}, options)) return;
 
-            layer = createStyleLayer(layerObject as LayerSpecification | CustomLayerInterface);
+            layer = createStyleLayer(layerObject as LayerSpecification | CustomLayerInterface | ModelLayerSpecification);
             this._validateLayer(layer);
 
             layer.setEventedParent(this, {layer: {id}});
@@ -1438,6 +1454,14 @@ export class Style extends Evented {
         if (options && options.validate === false) {
             return false;
         }
+
+        // eslint-disable-next-line no-warning-comments
+        // TODO: remove this check once the maplibre style-spec is updated correctly with
+        // model type.
+        if (value.type === 'model') {
+            return false;
+        }
+
         return emitValidationErrors(this, validate.call(validateStyle, extend({
             key,
             style: this.serialize(),

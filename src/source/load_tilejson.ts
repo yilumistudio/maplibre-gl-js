@@ -9,9 +9,10 @@ import type {Callback} from '../types/callback';
 import type {TileJSON} from '../types/tilejson';
 import type {Cancelable} from '../types/cancelable';
 import type {RasterDEMSourceSpecification, RasterSourceSpecification, VectorSourceSpecification} from '@maplibre/maplibre-gl-style-spec';
+import type {Tiled3DModelSourceSpecification} from './tiled_3d_model_source';
 
 export function loadTileJson(
-    options: RasterSourceSpecification | RasterDEMSourceSpecification | VectorSourceSpecification,
+    options: RasterSourceSpecification | RasterDEMSourceSpecification | VectorSourceSpecification | Tiled3DModelSourceSpecification,
     requestManager: RequestManager,
     callback: Callback<TileJSON>
 ): Cancelable {

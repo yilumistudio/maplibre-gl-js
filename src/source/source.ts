@@ -5,6 +5,7 @@ import {GeoJSONSource} from '../source/geojson_source';
 import {VideoSource} from '../source/video_source';
 import {ImageSource} from '../source/image_source';
 import {CanvasSource} from '../source/canvas_source';
+import {Tiled3DModelSource} from '../source/tiled_3d_model_source';
 
 import type {SourceSpecification} from '@maplibre/maplibre-gl-style-spec';
 import type {Dispatcher} from '../util/dispatcher';
@@ -14,6 +15,7 @@ import type {Tile} from './tile';
 import type {OverscaledTileID, CanonicalTileID} from './tile_id';
 import type {Callback} from '../types/callback';
 import type {CanvasSourceSpecification} from '../source/canvas_source';
+import type {Tiled3DModelSourceSpecification} from '../source/tiled_3d_model_source';
 
 const registeredSources = {} as {[key:string]: SourceClass};
 
@@ -84,7 +86,8 @@ type SourceStatics = {
  * A general definition of a {@link Source} class for factory usage
  */
 export type SourceClass = {
-    new (id: string, specification: SourceSpecification | CanvasSourceSpecification, dispatcher: Dispatcher, eventedParent: Evented): Source;
+    new (id: string, specification: SourceSpecification | CanvasSourceSpecification | Tiled3DModelSourceSpecification,
+        dispatcher: Dispatcher, eventedParent: Evented): Source;
 } & SourceStatics;
 
 /**
@@ -98,7 +101,8 @@ export type SourceClass = {
  * @param dispatcher - A {@link Dispatcher} instance, which can be used to send messages to the workers.
  * @returns a newly created source
  */
-export const create = (id: string, specification: SourceSpecification | CanvasSourceSpecification, dispatcher: Dispatcher, eventedParent: Evented): Source => {
+export const create = (id: string, specification: SourceSpecification | CanvasSourceSpecification | Tiled3DModelSourceSpecification,
+    dispatcher: Dispatcher, eventedParent: Evented): Source => {
 
     const Class = getSourceType(specification.type);
     const source = new Class(id, specification, dispatcher, eventedParent);
@@ -126,6 +130,8 @@ export const getSourceType = (name: string): SourceClass => {
             return VideoSource;
         case 'canvas':
             return CanvasSource;
+        case 'batched-model':
+            return Tiled3DModelSource;
     }
     return registeredSources[name];
 };

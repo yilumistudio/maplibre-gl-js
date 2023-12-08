@@ -8,12 +8,16 @@ import {SymbolStyleLayer} from './style_layer/symbol_style_layer';
 import {BackgroundStyleLayer} from './style_layer/background_style_layer';
 import {RasterStyleLayer} from './style_layer/raster_style_layer';
 import {CustomStyleLayer, type CustomLayerInterface} from './style_layer/custom_style_layer';
+import {ModelStyleLayer} from './style_layer/model_style_layer';
 
 import type {LayerSpecification} from '@maplibre/maplibre-gl-style-spec';
+import type {ModelLayerSpecification} from './style';
 
-export function createStyleLayer(layer: LayerSpecification | CustomLayerInterface) {
+export function createStyleLayer(layer: LayerSpecification | CustomLayerInterface | ModelLayerSpecification) {
     if (layer.type === 'custom') {
         return new CustomStyleLayer(layer);
+    } else if (layer.type === 'model') {
+        return new ModelStyleLayer(layer);
     }
     switch (layer.type) {
         case 'background':

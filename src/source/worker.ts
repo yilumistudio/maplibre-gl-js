@@ -14,6 +14,7 @@ import type {
     WorkerDEMTileCallback,
     TileParameters
 } from '../source/worker_source';
+import {Tiled3dModelWorkerSource} from './tiled_3d_model_worker_source';
 
 import type {WorkerGlobalScopeInterface} from '../util/web_worker';
 import type {Callback} from '../types/callback';
@@ -56,7 +57,8 @@ export default class Worker {
 
         this.workerSourceTypes = {
             vector: VectorTileWorkerSource,
-            geojson: GeoJSONWorkerSource
+            geojson: GeoJSONWorkerSource,
+            'batched-model': Tiled3dModelWorkerSource
         };
 
         // [mapId][sourceType][sourceName] => worker source instance

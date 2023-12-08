@@ -22,7 +22,7 @@ import type {CrossfadeParameters} from './evaluation_parameters';
 import type {Transform} from '../geo/transform';
 import type {CustomLayerInterface} from './style_layer/custom_style_layer';
 import type {Map} from '../ui/map';
-import type {StyleSetterOptions} from './style';
+import type {ModelLayerSpecification, StyleSetterOptions} from './style';
 import {mat4} from 'gl-matrix';
 import type {VectorTileFeature} from '@mapbox/vector-tile';
 
@@ -34,7 +34,7 @@ const TRANSITION_SUFFIX = '-transition';
 export abstract class StyleLayer extends Evented {
     id: string;
     metadata: unknown;
-    type: LayerSpecification['type'] | CustomLayerInterface['type'];
+    type: LayerSpecification['type'] | CustomLayerInterface['type'] | ModelLayerSpecification['type'];
     source: string;
     sourceLayer: string;
     minzoom: number;
@@ -67,7 +67,7 @@ export abstract class StyleLayer extends Evented {
         pixelPosMatrix: mat4
     ): boolean | number;
 
-    constructor(layer: LayerSpecification | CustomLayerInterface, properties: Readonly<{
+    constructor(layer: LayerSpecification | CustomLayerInterface | ModelLayerSpecification, properties: Readonly<{
         layout?: Properties<any>;
         paint?: Properties<any>;
     }>) {

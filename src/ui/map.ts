@@ -34,7 +34,7 @@ import {StyleLayer} from '../style/style_layer';
 import type {RequestTransformFunction} from '../util/request_manager';
 import type {LngLatLike} from '../geo/lng_lat';
 import type {LngLatBoundsLike} from '../geo/lng_lat_bounds';
-import type {AddLayerObject, FeatureIdentifier, StyleOptions, StyleSetterOptions} from '../style/style';
+import type {AddLayerObject, FeatureIdentifier, ModelLayerSpecification, StyleOptions, StyleSetterOptions} from '../style/style';
 import type {MapDataEvent} from './events';
 import type {StyleImage, StyleImageInterface, StyleImageMetadata} from '../style/style_image';
 import type {PointLike} from './camera';
@@ -68,6 +68,7 @@ import {RenderToTexture} from '../render/render_to_texture';
 import {config} from '../util/config';
 import type {QueryRenderedFeaturesOptions, QuerySourceFeatureOptions} from '../source/query_features';
 import {Tile} from '../source/tile';
+import {Tiled3DModelSourceSpecification} from '../source/tiled_3d_model_source';
 
 const version = packageJSON.version;
 
@@ -429,7 +430,7 @@ const defaultOptions = {
     maxCanvasSize: [4096, 4096]
 } as CompleteMapOptions;
 
-type LayerTypes = LayerSpecification['type'] | CustomLayerInterface['type'];
+type LayerTypes = LayerSpecification['type'] | CustomLayerInterface['type'] | ModelLayerSpecification['type'];
 
 /**
  * The `Map` object represents the map on your page. It exposes methods
@@ -1948,7 +1949,7 @@ export class Map extends Camera {
      * ```
      * @see GeoJSON source: [Add live realtime data](https://maplibre.org/maplibre-gl-js/docs/examples/live-geojson/)
      */
-    addSource(id: string, source: SourceSpecification): this {
+    addSource(id: string, source: SourceSpecification | Tiled3DModelSourceSpecification): this {
         this._lazyInitEmptyStyle();
         this.style.addSource(id, source);
         return this._update(true);
@@ -3466,12 +3467,19 @@ export class Map extends Camera {
         this._update(true);
     }
 
-    getRenderableTiles(symbolLayer: boolean): Tile[] | null {
+    getRenderableTiles(symbolLayer: boolean): { [key: string]: Tile[] | null } {
+        const renderableTilesDict: { [key: string]: Tile[] | null } = {};
         if (this.style && this.style.sourceCaches) {
-            const sourceCache = this.style.sourceCaches['osm-singapore'];
-            const renderableTiles = sourceCache.getRenderableTiles(symbolLayer);
-            return renderableTiles.length > 0 ? renderableTiles : null;
+            Object.keys(this.style.sourceCaches).forEach(key => {
+                const sourceCache = this.style.sourceCaches[key];
+                let renderableTiles = sourceCache.getRenderableTiles(symbolLayer);
+                if (sourceCache.getSource().type === 'batched-model') {
+                    renderableTiles = renderableTiles.filter((tile) => (tile.latestRawTile3dModelData && tile.latestRawTile3dModelData.byteLength > 0));
+                }
+                renderableTilesDict[key] = renderableTiles.length > 0 ? renderableTiles : null;
+            });
         }
-        return null;
+        return renderableTilesDict;
     }
+
 }
