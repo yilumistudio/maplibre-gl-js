@@ -5,9 +5,27 @@ This document gives us instructions on Linux, Mac and Windows.
 In practice, we use **WSL ubuntu on Windows** to build.
 
 ### WSL ubuntu on Windows
-Follow [WSL-UBUNTU-SETUP.md](./WSL-UBUNTU-SETUP.md) to setup WSL on Windows.  
+
+Follow this guide https://github.com/yilumistudio/map-tools-docs/blob/main/WSL-SETUP.md to install WSL2 on Windows.
+Once wls2 is installed.
+
+- Sync repo
+  ```cd ~;
+  mkdir github;
+  cd github;
+  gh repo clone yilumistudio/maplibre-gl-js
+  cd maplibre-gl-js
+  # switch or create dev branch if necessary
+  ```
+- WSL ubuntu, repo setups
+  Just follow [CONTRIBUTING.md](../CONTRIBUTING.md), **Linux** portion, NOT  
+  Windows portion.
+
+- Note that when we use VS code to open this repo, a prompt will show to suggest  
+  using existing dev container. **Don't use** it. This is only for codespace.
 
 #### Install windows version docker
+
 docker required for running tests (no need if you don't run tests).
 
 ## Build
