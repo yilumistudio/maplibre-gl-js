@@ -1,3 +1,7 @@
+## 0.1.10
+
+Add instanced model manager to load instanced models array buffer from given urls in stylesheet.
+
 ## 0.1.9
 
 https://github.com/yilumistudio/maplibre-gl-js/commit/192a1db540a951f0bcdab900a562f1d1f83145ea

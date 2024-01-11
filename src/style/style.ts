@@ -4,6 +4,7 @@ import {createStyleLayer} from './create_style_layer';
 import {loadSprite} from './load_sprite';
 import {ImageManager} from '../render/image_manager';
 import {GlyphManager} from '../render/glyph_manager';
+import {InstancedModelManager} from '../render/instancedmodel_manager';
 import {Light} from './light';
 import {LineAtlas} from '../render/line_atlas';
 import {pick, clone, extend, deepEqual, filterObject, mapObject} from '../util/util';
@@ -213,6 +214,10 @@ export type ModelLayerSpecification = {
 export type AddLayerObject = LayerSpecification | (Omit<LayerSpecification, 'source'> & {source: SourceSpecification})
 | CustomLayerInterface | ModelLayerSpecification;
 
+export type InstancedModelsSpecification = {
+    [_: string] : string;
+}
+
 /**
  * The Style base class
  */
@@ -222,6 +227,7 @@ export class Style extends Evented {
     dispatcher: Dispatcher;
     imageManager: ImageManager;
     glyphManager: GlyphManager;
+    instancedModelManager: InstancedModelManager;
     lineAtlas: LineAtlas;
     light: Light;
 
@@ -262,6 +268,7 @@ export class Style extends Evented {
         this.imageManager = new ImageManager();
         this.imageManager.setEventedParent(this);
         this.glyphManager = new GlyphManager(map._requestManager, options.localIdeographFontFamily);
+        this.instancedModelManager = new InstancedModelManager();
         this.lineAtlas = new LineAtlas(256, 512);
         this.crossTileSymbolIndex = new CrossTileSymbolIndex();
 
@@ -383,6 +390,12 @@ export class Style extends Evented {
         this._createLayers();
 
         this.light = new Light(this.stylesheet.light);
+
+        if ('instancedmodels' in this.stylesheet) {
+            if (this.stylesheet.instancedmodels && Object.keys(this.stylesheet.instancedmodels).length > 0) {
+                this.instancedModelManager.addModels(this.stylesheet.instancedmodels as InstancedModelsSpecification);
+            }
+        }
 
         this.map.setTerrain(this.stylesheet.terrain ?? null);
 
@@ -1749,6 +1762,15 @@ export class Style extends Evented {
                 completion(null);
             }
         }
+    }
+
+    /**
+     * Get the instance model buffer for given id.
+     *
+     * @param id - the id of the instanced model
+     */
+    getInstancedModelBuffer(id: string): ArrayBuffer | undefined {
+        return this.instancedModelManager.getModelBuffer(id);
     }
 }
 
