@@ -1,3 +1,7 @@
+## 0.1.11
+
+Fixed covering tiles vertical culling (formally called fog culling vertical offset) calculation.
+
 ## 0.1.10
 
 https://github.com/yilumistudio/maplibre-gl-js/commit/36f4dad11a95f0dbc43f6dba56c155f09adf5f5b

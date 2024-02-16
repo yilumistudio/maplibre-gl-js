@@ -158,6 +158,6 @@ https://verdaccio.yilumi.com/
 7. Useful commands
 
 ```
-npm info @yilumi/react-three-map versions
-npm unpublish @yilumi/react-three-map@0.1.1 --registry https://verdaccio.yilumi.com
+npm info @yilumi/maplibre-gl versions
+npm unpublish @yilumi/maplibre-gl@0.1.10 --registry https://verdaccio.yilumi.com
 ```

@@ -331,16 +331,16 @@ export type MapOptions = {
      */
     maxCanvasSize?: [number, number];
     /**
-     * Fog culling is referencing screen space. This value is the ratio of vertical
-     * distance from center point to top center.
-     * fogCullingVerticalOffset's range: [-0.5, 0.5]. 0 means no offset. 0.25 means
-     * fog appears half of top half screen.
+     * Covering tiles top culling is referencing screen space. This value is the ratio of vertical
+     * distance from top center to bottom center.
+     * coveringTilesTopCullingRatio's range: [0, 1]. 0 means no culling. 0.3 means
+     * top 30% screen will be culled.
      */
-    fogCullingVerticalOffset?: number;
+    coveringTilesTopCullingRatio?: number;
     /*
-     * The minimum pitch at which fog culling is enabled.
+     * The minimum pitch at which covering tiles top culling is enabled.
      */
-    fogStartMinPitch?: number;
+    coveringTilesTopCullingMinPitch?: number;
 };
 
 /**
@@ -518,8 +518,8 @@ export class Map extends Camera {
     _clickTolerance: number;
     _overridePixelRatio: number | null;
     _maxCanvasSize: [number, number];
-    _fogCullingVerticalOffset: number | null;
-    _fogStartMinPitch: number | null;
+    _coveringTilesTopCullingRatio: number | null;
+    _coveringTilesTopCullingMinPitch: number | null;
     _terrainDataCallback: (e: MapStyleDataEvent | MapSourceDataEvent) => void;
 
     /**
@@ -600,7 +600,7 @@ export class Map extends Camera {
 
         const transform = new Transform(options.minZoom, options.maxZoom,
             options.minPitch, options.maxPitch, options.renderWorldCopies,
-            options.fogCullingVerticalOffset, options.fogStartMinPitch);
+            options.coveringTilesTopCullingRatio, options.coveringTilesTopCullingMinPitch);
         super(transform, {bearingSnap: options.bearingSnap});
 
         this._interactive = options.interactive;
@@ -625,8 +625,8 @@ export class Map extends Camera {
         this._clickTolerance = options.clickTolerance;
         this._overridePixelRatio = options.pixelRatio;
         this._maxCanvasSize = options.maxCanvasSize;
-        this._fogCullingVerticalOffset = options.fogCullingVerticalOffset;
-        this._fogStartMinPitch = options.fogStartMinPitch;
+        this._coveringTilesTopCullingRatio = options.coveringTilesTopCullingRatio;
+        this._coveringTilesTopCullingMinPitch = options.coveringTilesTopCullingMinPitch;
         this.transformCameraUpdate = options.transformCameraUpdate;
 
         this._imageQueueHandle = ImageRequest.addThrottleControl(() => this.isMoving());

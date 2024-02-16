@@ -68,13 +68,13 @@ export class Transform {
     // Inverse of glCoordMatrix, from NDC to screen coordinates, [-1, 1] x [-1, 1] --> [0, w] x [h, 0]
     labelPlaneMatrix: mat4;
 
-    // Fog culling is referencing screen space. This value is the ratio of vertical
-    // distance from center point to top center.
-    // fogCullingVerticalOffset's range: [-0.5, 0.5]. 0 means no offset. 0.25 means
-    // fog appears half of top half screen.
-    fogCullingVerticalOffset?: number;
-    // The minimum pitch at which fog culling is enabled.
-    fogStartMinPitch?: number;
+    // Covering tiles top culling is referencing screen space. This value is the ratio of vertical
+    // distance from top center to bottom center.
+    // coveringTilesTopCullingRatio's range: [0, 1]. 0 means no culling. 0.3 means
+    // top 30% screen will be culled.
+    coveringTilesTopCullingRatio?: number;
+    // The minimum pitch at which covering tiles top culling is enabled.
+    coveringTilesTopCullingMinPitch?: number;
 
     // Vertical Fov, radians
     _fov: number;
@@ -96,11 +96,11 @@ export class Transform {
     _minEleveationForCurrentTile: number;
 
     constructor(minZoom?: number, maxZoom?: number, minPitch?: number, maxPitch?: number,
-        renderWorldCopies?: boolean, fogCullingVerticalOffset?: number, fogStartMinPitch?: number) {
+        renderWorldCopies?: boolean, coveringTilesTopCullingRatio?: number, coveringTilesTopCullingMinPitch?: number) {
         this.tileSize = 512; // constant
         this.maxValidLatitude = 85.051129; // constant
-        this.fogCullingVerticalOffset = fogCullingVerticalOffset ? Math.max(-0.5, Math.min(fogCullingVerticalOffset, 0.5)) : null;
-        this.fogStartMinPitch = fogStartMinPitch;
+        this.coveringTilesTopCullingRatio = coveringTilesTopCullingRatio ? Math.max(0, Math.min(coveringTilesTopCullingRatio, 1)) : null;
+        this.coveringTilesTopCullingMinPitch = coveringTilesTopCullingMinPitch;
 
         this._renderWorldCopies = renderWorldCopies === undefined ? true : !!renderWorldCopies;
         this._minZoom = minZoom || 0;
@@ -129,7 +129,7 @@ export class Transform {
     clone(): Transform {
         const clone = new Transform(this._minZoom, this._maxZoom, this._minPitch,
             this.maxPitch, this._renderWorldCopies,
-            this.fogCullingVerticalOffset, this.fogStartMinPitch);
+            this.coveringTilesTopCullingRatio, this.coveringTilesTopCullingMinPitch);
         clone.apply(this);
         return clone;
     }
@@ -148,8 +148,8 @@ export class Transform {
         this._pitch = that._pitch;
         this._unmodified = that._unmodified;
         this._edgeInsets = that._edgeInsets.clone();
-        this.fogCullingVerticalOffset = that.fogCullingVerticalOffset;
-        this.fogStartMinPitch = that.fogStartMinPitch;
+        this.coveringTilesTopCullingRatio = that.coveringTilesTopCullingRatio;
+        this.coveringTilesTopCullingMinPitch = that.coveringTilesTopCullingMinPitch;
         this._calcMatrices();
     }
 
@@ -485,10 +485,10 @@ export class Transform {
             }
         }
 
-        if (this.fogCullingVerticalOffset && this.fogStartMinPitch && this.pitch >= this.fogStartMinPitch) {
-            const fogCullingPointY = this.height * (0.5 - this.fogCullingVerticalOffset);
-            const utl = this.pointCoordinate(new Point(0, fogCullingPointY));
-            const utr = this.pointCoordinate(new Point(this.width, fogCullingPointY));
+        if (this.coveringTilesTopCullingRatio && this.coveringTilesTopCullingMinPitch && this.pitch >= this.coveringTilesTopCullingMinPitch) {
+            const cullingPointY = this.height * this.coveringTilesTopCullingRatio;
+            const utl = this.pointCoordinate(new Point(0, cullingPointY));
+            const utr = this.pointCoordinate(new Point(this.width, cullingPointY));
             const ubr = this.pointCoordinate(new Point(this.width, this.height));
             const ubl = this.pointCoordinate(new Point(0, this.height));
             const allowedCoords = [new Point(utl.x, utl.y),
