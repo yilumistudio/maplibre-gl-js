@@ -489,12 +489,13 @@ export class Transform {
             const fogCullingPointY = this.height * (0.5 - this.fogCullingVerticalOffset);
             const utl = this.pointCoordinate(new Point(0, fogCullingPointY));
             const utr = this.pointCoordinate(new Point(this.width, fogCullingPointY));
-            const ubl = this.pointCoordinate(new Point(this.width, this.height));
-            const ubr = this.pointCoordinate(new Point(0, this.height));
+            const ubr = this.pointCoordinate(new Point(this.width, this.height));
+            const ubl = this.pointCoordinate(new Point(0, this.height));
             const allowedCoords = [new Point(utl.x, utl.y),
                 new Point(utr.x, utr.y),
+                new Point(ubr.x, ubr.y),
                 new Point(ubl.x, ubl.y),
-                new Point(ubr.x, ubr.y)];
+                new Point(utl.x, utl.y)];
 
             result = result.filter(entry => {
                 const tileX = entry.tileID.canonical.x;
@@ -506,8 +507,10 @@ export class Transform {
                 const tileCoordBR = new MercatorCoordinate((tileX + 1) / numTilesAtZ, (tileY + 1) / numTilesAtZ);
                 const thisTileCoords = [new Point(tileCoordTL.x, tileCoordTL.y),
                     new Point(tileCoordTR.x, tileCoordTR.y),
+                    new Point(tileCoordBR.x, tileCoordBR.y),
                     new Point(tileCoordBL.x, tileCoordBL.y),
-                    new Point(tileCoordBR.x, tileCoordBR.y)];
+                    new Point(tileCoordTL.x, tileCoordTL.y)
+                ];
 
                 if (!polygonIntersectsPolygon(allowedCoords, thisTileCoords)) {
                     return false;
